@@ -11,12 +11,12 @@ using System.IO;
 
 namespace autokKözös
 {
-    public partial class Form1 : Form
+    public partial class Autók : Form
     {
         static List<Auto> autok = new List<Auto>();
 
         static List<Költség> koltsegek = new List<Költség>();
-        public Form1()
+        public Autók()
         {
             InitializeComponent();
         }
@@ -40,18 +40,61 @@ namespace autokKözös
             sr2.Close();
 
             dGAutok.DataSource = autok ;
+            panelUjAuto.Visible = false;
         }
 
         private void dGAutok_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            if(e.RowIndex == -1) return;
             int sor = e.RowIndex;
             int auto = autok[sor].Id;
             List<Költség> tmp = new List<Költség> ();
-            foreach (var item in koltsegek)
+            foreach (var item in koltsegek) 
+            {
                 if (item.AutoId == auto) tmp.Add(item);
+            }
             //List <Költség> tmp = koltsegek.Where(a => a.AutoId == auto).ToList();
             //dGWkoltsegek.DataSource = tmp ;
+            autokoltsegek.Text = autok[sor].Rendszám + " költségei";
+            dGWkoltsegek.RowHeadersVisible = false;
             dGWkoltsegek.DataSource = tmp.Select(a => new { a.Dátum, a.Kategória, a.Megnevezés, a.Összeg }).ToList() ;
+        }
+        private void dGAutok_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+        private void dGAutok_HeaderClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            //uj auto
+            panelUjAuto.Visible = true;
+            dGAutok.Enabled = false;
+            dGWkoltsegek.Enabled = false;
+        }
+
+        private void btnUjMegsem_Click(object sender, EventArgs e)
+        {
+            panelUjAuto.Visible = false;
+            dGAutok.Enabled = true;
+            dGWkoltsegek.Enabled = true;
+        }
+
+        private void btnUjMentes_Click(object sender, EventArgs e)
+        {
+            if(txbEvjarat.Text == "" ||
+                txbKm.Text == "" ||
+                txbRendszam.Text == "" ||
+                txbMarka.Text == "" ||
+                txbModel.Text == "" ||
+                txbUzemanyag.Text == "")
+            {
+                MessageBox.Show("Minden mező kitöltése kötelező!");
+                return;
+            }
+            if(int.Parse(txbEvjarat.Text) <1900 || int.Parse(txbEvjarat.Text) >2026)
+            {
+                MessageBox.Show("Az évjárat nem megfelelő!");
+                return;
+            }
         }
     }
 }
