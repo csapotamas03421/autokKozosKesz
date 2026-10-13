@@ -72,8 +72,8 @@ namespace autokKözös
             dGAutok.Enabled = false;
             dGWkoltsegek.Enabled = false;
 
-            txbRendszam.Text = autok[sor].Rendszám;
-            aid = autok[sor].ToString();
+            kRendszam.Text = autok[sor].Rendszám;
+            aid = autok[sor].Id.ToString();
             kKategoria.SelectedIndex = 0;
 
 
@@ -108,7 +108,8 @@ namespace autokKözös
             }
             try
             {
-                if (int.Parse(txbEvjarat.Text) < 1900 || int.Parse(txbEvjarat.Text) > 2026)
+                int evjarat = int.Parse(txbEvjarat.Text);
+                if (evjarat < 1900 || evjarat > DateTime.Now.Year) 
                 {
                     MessageBox.Show("Az évjárat nem megfelelő!");
                     return;
@@ -125,16 +126,18 @@ namespace autokKözös
 
             try
             {
-                if (int.Parse(txbKm.Text) < 0)
+
+                int km = int.Parse(txbKm.Text);
+                if (km < 0)
                 {
-                    MessageBox.Show("Az km nem megfelelő!");
+                    MessageBox.Show("A km nem megfelelő!");
                     return;
                 }
 
             }
             catch (Exception)
             {
-                MessageBox.Show("Az km nem megfelelő!");
+                MessageBox.Show("A km nem megfelelő!");
                 return;
             }
 
@@ -146,18 +149,28 @@ namespace autokKözös
                 return;
             }
 
-            //txbRendszam.Clear();
+            
 
             int maxId = autok.Max(x => x.Id) + 1;
             StreamWriter sw = new StreamWriter("autok.csv", true, Encoding.UTF8);
             string tmp = $"{maxId.ToString()}";
-            sw.WriteLine($"\n{maxId.ToString()};{txbRendszam.Text};{txbMarka.Text};{txbModel.Text};{txbEvjarat.Text};{txbUzemanyag.Text};{txbKm.Text}");
-
-            sw.WriteLine("\n" + tmp);
+            sw.WriteLine($"\n {tmp};{txbRendszam.Text};{txbMarka.Text};{txbModel.Text};{txbEvjarat.Text};{txbUzemanyag.Text};{txbKm.Text}");
             sw.Close();
 
             panelUjAuto.Visible = false;
-            autok.Add(new Auto(tmp));
+
+            string ujSorAuto = $"{maxId.ToString()};{txbRendszam.Text};{txbMarka.Text};{txbModel.Text};{txbEvjarat.Text};{txbUzemanyag.Text};{txbKm.Text}";
+       
+
+            autok.Add( new Auto(ujSorAuto));
+
+            foreach (Control c in panelUjAuto.Controls)
+            {
+                if (c is TextBox)
+                {
+                    ((TextBox)c).Clear();
+                }
+            }
       
             dGAutok.DataSource = false;
             dGAutok.DataSource = autok;
@@ -177,14 +190,15 @@ namespace autokKözös
 
         private void button1_Click(object sender, EventArgs e)
         {
-            int kÖsszeg = -1;
+            int kÖsszeg;
             try
             {
                 kÖsszeg = int.Parse(kOsszeg.Text);
             }
             catch (Exception)
             {
-
+                MessageBox.Show("Rossz összeg.");
+                return;
             }
             if (kÖsszeg < 0)
             {
@@ -199,24 +213,33 @@ namespace autokKözös
             }
             catch (Exception)
             {
-                minKm = autok[int.Parse(aid)].Kilométer;
+                //minKm = autok[int.Parse(aid)].Kilométer;
+                minKm = autok.First(x => x.Id == int.Parse(aid)).Kilométer;
             }
-           
 
-            int nKm = minKm - 1;
+
+            int nKm;
             try
             {
-                nKm = int.Parse(txbKm.Text);
+                if(int.Parse(kKm.Text) < minKm)
+                {
+                    MessageBox.Show("Rossz km.");
+                    return;
+                }
+                //nKm = int.Parse(kKm.Text);
             }
             catch (Exception)
             {
-               
+                MessageBox.Show("Rossz km.");
+                return;
             }
+            /*
             if (kÖsszeg < minKm)
             {
                 MessageBox.Show("Rossz km.");
                 return;
             }
+            */
 
             string tmp = $"" +
                 $"{(koltsegek.Max(x => x.Id) + 1).ToString()};" +
@@ -233,6 +256,14 @@ namespace autokKözös
             koltsegek.Add(new Költség(tmp));
 
             dGWkoltsegek.DataSource = false;
+            dGWkoltsegek.DataSource = tmp;
+
+            //rendszam.Clear();
+            kKategoria.SelectedIndex = 0;
+            kOsszeg.Clear();
+            kKm.Clear();
+            kMegnevezes.Clear();
+
             panelKoltseg.Visible = false;
             dGAutok.Enabled = true;
             dGWkoltsegek.Enabled = true;
